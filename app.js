@@ -13,10 +13,11 @@ app.get('*', (req, res) => {
 });
 
 app.post('*', (req, res) => {
-  const { sessionId, serviceCode, phoneNumber, text } = req.body;
+  console.log("Req Body: ", req);
+  const { sessionId, serviceCode, phoneNumber, ussdString } = req.body;
   let response = '';
-  switch (text) {
-    case '':
+  switch (req.body.ussdString) {
+    case '*120*1341*003#':
       // This is the first request. Note how we start the response with CON
       response = `CON Which game to watch?
     1. Sundowns vs Pirates
@@ -30,7 +31,9 @@ app.post('*', (req, res) => {
       return res.send(response);
     case '2':
       // Business logic for first level response
-      response = `END Your phone number is ${phoneNumber}`;
+      response = `CON Side Stand costs R200.00
+      1. Buy Ticket
+      2. Back to Main Menu`;
       return res.send(response);
     default:
       return res.status(400).send('Bad request!');
