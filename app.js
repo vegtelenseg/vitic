@@ -1,26 +1,27 @@
 const app = require('express')();
 const bodyParser = require('body-parser');
 const logger = require('morgan');
+const cors = require('cors');
 
 const port = process.env.PORT || 3030;
-
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.options('*', cors());
 
 app.get('*', (req, res) => {
   res.send('Menu does not exist');
 });
 
 app.post('*', (req, res) => {
-  console.log("Req Body: ", req);
+  console.log("Req Body: ", req.body);
   const { sessionId, serviceCode, phoneNumber, ussdString, text } = req.body;
   let response = '';
   switch (req.body.ussdString) {
     case '*120*1341*003#':
       response = `CON Which game to watch?
     1. Sundowns vs Pirates
-    2. Kaizer Chiefgs vs Ajax`;
+    2. Kaizer Chiefs vs Ajax`;
       return res.send(response);
     case '1':
       response = `CON Choose type of stand to watch from
