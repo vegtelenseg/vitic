@@ -1,86 +1,33 @@
-function Node(value) {
-  this.data = value;
-  this.previous = null;
-  this.next = null;
+class NodeTpl {
+  constructor(name, options) {
+    this.name = name;
+    this.options = options;
+  }
+  getOption(idx) {
+    return this.options[idx];
+  }
 }
 
-function UssdMenu() {
-  this._length = 0;
-  this.head = null;
-  this.tail = null;
+class Option {
+  constructor(optionDisplayText, nextNodeTpl) {
+    this.optionDisplayText = optionDisplayText;
+    this.nextNodeTpl = nextNodeTpl;
+  }
 }
 
-UssdMenu.prototype.addMenu = function (value) {
-  const node = new Node(value);
-
-  if (this._length) {
-    this.tail.next = node;
-    node.previous = this.tail;
-    this.tail = node;
-  } else {
-    this.head = node;
-    this.tail = node;
+class NodeInstance {
+  constructor(currTpl, prevNI) {
+    this.currTpl = currTpl;
+    (this.prevNI = prevNI), (this.userInput = '');
   }
 
-  this._length++;
+  processUserInput(userInput) {
+    return this.currTpl.getOption(userInput);
+  }
+}
 
-  return node;
+module.exports = {
+  NodeTpl,
+  Option,
+  NodeInstance
 };
-
-UssdMenu.prototype.getCurrentState = function () {
-  return this.head;
-}
-
-UssdMenu.prototype.removeMenu = function (position) {
-  var currentNode = this.head,
-    length = this._length,
-    count = 1,
-    message = { failure: 'Failure: non-existent node in this list.' },
-    beforeNodeToDelete = null,
-    nodeToDelete = null,
-    deletedNode = null;
-
-  // 1st use-case: an invalid position
-  if (length === 0 || position < 1 || position > length) {
-    throw new Error(message.failure);
-  }
-
-  // 2nd use-case: the first node is removed
-  if (position === 1) {
-    this.head = currentNode.next;
-
-    // 2nd use-case: there is a second node
-    if (!this.head) {
-      this.head.previous = null;
-      // 2nd use-case: there is no second node
-    } else {
-      this.tail = null;
-    }
-
-    // 3rd use-case: the last node is removed
-  } else if (position === this._length) {
-    this.tail = this.tail.previous;
-    this.tail.next = null;
-    // 4th use-case: a middle node is removed
-  } else {
-    while (count < position) {
-      currentNode = currentNode.next;
-      count++;
-    }
-
-    beforeNodeToDelete = currentNode.previous;
-    nodeToDelete = currentNode;
-    afterNodeToDelete = currentNode.next;
-
-    beforeNodeToDelete.next = afterNodeToDelete;
-    afterNodeToDelete.previous = beforeNodeToDelete;
-    deletedNode = nodeToDelete;
-    nodeToDelete = null;
-  }
-
-  this._length--;
-
-  return message.success;
-};
-
-module.exports = UssdMenu;
