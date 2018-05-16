@@ -1,4 +1,4 @@
-class NodeTpl {
+class NodeTemplate {
   constructor(name, options, promptTextGenerator, ticketOrderUpdater) {
     this.name = name;
     this.options = options;
@@ -6,8 +6,8 @@ class NodeTpl {
     this.ticketOrderUpdater = ticketOrderUpdater;
   }
 
-  getPromptText(tickOrder) {
-    return this.promptTextGenerator(tickOrder);
+  getPromptText(ticketOrder) {
+    return this.promptTextGenerator(ticketOrder);
   }
 
   getOption(idx) {
@@ -16,34 +16,34 @@ class NodeTpl {
 }
 
 class Option {
-  constructor(optionDisplayText, nextNodeTpl) {
+  constructor(optionDisplayText, nextNodeTemplate) {
     this.optionDisplayText = optionDisplayText;
-    this.nextNodeTpl = nextNodeTpl;
+    this.nextNodeTemplate = nextNodeTemplate;
   }
 }
 
 class StandOption extends Option {
-  constructor(optionDisplayText, nextNodeTpl, standPrice) {
-    super(optionDisplayText, nextNodeTpl);
+  constructor(optionDisplayText, nextNodeTemplate, standPrice) {
+    super(optionDisplayText, nextNodeTemplate);
     this.standPrice = standPrice;
   }
 }
 
 class NodeInstance {
-  constructor(currTpl, prevNI) {
-    this.currTpl = currTpl;
-    this.prevNI = prevNI;
+  constructor(currentTemplate, previousNodeInstance) {
+    this.currentTemplate = currentTemplate;
+    this.previousNodeInstance = previousNodeInstance;
     this.userInput = '';
     this.selectedOption = null;
   }
 
   processUserInput(userInput) {
-    this.selectedOption = this.currTpl.getOption(userInput);
+    this.selectedOption = this.currentTemplate.getOption(userInput);
     return this.selectedOption;
   }
 
   updateState(stateKeeper) {
-    const { ticketOrderUpdater } = this.currTpl;
+    const { ticketOrderUpdater } = this.currentTemplate;
     const { ticketOrder } = stateKeeper;
     let updatedTicketOrder = null;
     if (ticketOrderUpdater) {
@@ -59,7 +59,7 @@ class NodeInstance {
 }
 
 module.exports = {
-  NodeTpl,
+  NodeTemplate,
   Option,
   StandOption,
   NodeInstance

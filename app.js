@@ -2,7 +2,12 @@ const app = require('express')();
 const bodyParser = require('body-parser');
 const logger = require('morgan');
 const cors = require('cors');
-const { NodeInstance, Option, StandOption, NodeTpl } = require('./ussd-menu');
+const {
+  NodeInstance,
+  Option,
+  StandOption,
+  NodeTemplate
+} = require('./ussd-menu');
 const port = process.env.PORT || 3030;
 
 app.use(logger('dev'));
@@ -14,11 +19,21 @@ app.get('*', (req, res) => {
   res.send('USSD MENU');
 });
 
+const ticketOrder = {
+  match: '',
+  stand: {},
+  quantity: 1,
+  cost: 5
+};
 
-const endSessionSelectionNode = new NodeTpl(
+const stateKeeper = {
+  node: null,
+  ticketOrder
+};
+const endSessionSelectionNode = new NodeTemplate(
   '_END_SESSION_',
   [],
-  tickeOrder => `Ticket for ${tickeOrder.match} purchase successfully`,
+  ticketOrder => `Ticket for ${ticketOrder.match}, watching from the ${ticketOrder.stand.optionDisplayText} has been purchased successfully. You will receive an sms.`,
   null
 );
 
@@ -28,17 +43,19 @@ const orderOptions = [
     option: new Option('Confirm', endSessionSelectionNode)
   },
   {
-    option: new Option('Back', null)
+    option: new Option('Back', stateKeeper.node)
   }
 ];
 
-const orderSelectionNode = new NodeTpl(
+const orderSelectionNode = new NodeTemplate(
   '_CONFIRM_ORDER_',
   orderOptions,
-  tickeOrder => `${tickeOrder.stand.optionDisplayText} ticket costs R${ticketOrder.stand.standPrice}. Buy Ticket?`,
+  tickeOrder =>
+    `${tickeOrder.stand.optionDisplayText} ticket costs R${
+      ticketOrder.stand.standPrice
+    }. Buy Ticket?`,
   null
 );
-
 
 // Stand Options
 const standOptions = [
@@ -50,12 +67,11 @@ const standOptions = [
   }
 ];
 
-const standSelectionNode = new NodeTpl(
+const standSelectionNode = new NodeTemplate(
   '_SELECT_STAND_',
   standOptions,
   tickeOrder => `Watch ${ticketOrder.match} from:`,
-  (ticketOrder, selection) =>
-    (ticketOrder.stand = selection.option)
+  (ticketOrder, selection) => (ticketOrder.stand = selection.option)
 );
 
 // Match Options
@@ -70,7 +86,7 @@ const matchOptions = [
     option: new Option('FSS vs PLT', standSelectionNode)
   }
 ];
-const matchSelectionNode = new NodeTpl(
+const matchSelectionNode = new NodeTemplate(
   '_SELECT_MATCH_',
   matchOptions,
   null,
@@ -78,25 +94,13 @@ const matchSelectionNode = new NodeTpl(
     (ticketOrder.match = selection.option.optionDisplayText)
 );
 
-const ticketOrder = {
-  match: '',
-  stand: {},
-  quantity: 1,
-  cost: 5
-
-}
-const stateKeeper = {
-  node: null,
-  ticketOrder
-};
-
 app.post('*', (req, res) => {
   stateKeeper.node = new NodeInstance(matchSelectionNode, null);
   const { node } = stateKeeper;
   const prompt = `What to watch?
-  1. ${node.currTpl.getOption(0).option.optionDisplayText}
-  2. ${node.currTpl.getOption(1).option.optionDisplayText}
-  3. ${node.currTpl.getOption(2).option.optionDisplayText}`;
+  1. ${node.currentTemplate.getOption(0).option.optionDisplayText}
+  2. ${node.currentTemplate.getOption(1).option.optionDisplayText}
+  3. ${node.currentTemplate.getOption(2).option.optionDisplayText}`;
   const response = {
     prompt,
     end: false
@@ -105,7 +109,7 @@ app.post('*', (req, res) => {
 });
 
 const getOptions = nodeInstance => {
-  const { options } = nodeInstance.currTpl;
+  const { options } = nodeInstance.currentTemplate;
   return options.map((option, idx) => {
     return ++idx + '. ' + option.option.optionDisplayText + '\n';
   });
@@ -113,19 +117,19 @@ const getOptions = nodeInstance => {
 app.put('*', (req, res) => {
   const { userInput } = req.body;
   const selectedOption = stateKeeper.node.processUserInput(userInput - 1);
-  const endSession = selectedOption.option.nextNodeTpl !== null ? false : true;
-  console.log("End session: ", endSession);
   stateKeeper.node.updateState(stateKeeper);
   const nextInstance = new NodeInstance(
-    selectedOption.option.nextNodeTpl,
-    stateKeeper.node,
+    selectedOption.option.nextNodeTemplate,
+    stateKeeper.node
   );
-  const prompt = `${nextInstance.currTpl.getPromptText(stateKeeper.ticketOrder)}
+  const prompt = `${nextInstance.currentTemplate.getPromptText(
+    stateKeeper.ticketOrder
+  )}
   ${getOptions(nextInstance)}`;
   stateKeeper.node = nextInstance;
   const response = {
     prompt,
-    end: nextInstance.currTpl.options.length <= 0 ? true : false
+    end: nextInstance.currentTemplate.options.length <= 0 ? true : false
   };
   res.send(response);
 });
