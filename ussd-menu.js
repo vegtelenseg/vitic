@@ -22,6 +22,13 @@ class Option {
   }
 }
 
+class StandOption extends Option {
+  constructor(optionDisplayText, nextNodeTpl, standPrice) {
+    super(optionDisplayText, nextNodeTpl);
+    this.standPrice = standPrice;
+  }
+}
+
 class NodeInstance {
   constructor(currTpl, prevNI) {
     this.currTpl = currTpl;
@@ -54,5 +61,6 @@ class NodeInstance {
 module.exports = {
   NodeTpl,
   Option,
+  StandOption,
   NodeInstance
 };

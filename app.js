@@ -2,7 +2,7 @@ const app = require('express')();
 const bodyParser = require('body-parser');
 const logger = require('morgan');
 const cors = require('cors');
-const { NodeInstance, Option, NodeTpl } = require('./ussd-menu');
+const { NodeInstance, Option, StandOption, NodeTpl } = require('./ussd-menu');
 const port = process.env.PORT || 3030;
 
 app.use(logger('dev'));
@@ -14,38 +14,48 @@ app.get('*', (req, res) => {
   res.send('USSD MENU');
 });
 
+
+const endSessionSelectionNode = new NodeTpl(
+  '_END_SESSION_',
+  [],
+  tickeOrder => `Ticket for ${tickeOrder.match} purchase successfully`,
+  null
+);
+
 // Order Options
 const orderOptions = [
   {
-    option: new Option('R400', null)
+    option: new Option('Confirm', endSessionSelectionNode)
   },
   {
-    option: new Option('R200', null)
+    option: new Option('Back', null)
   }
 ];
+
 const orderSelectionNode = new NodeTpl(
   '_CONFIRM_ORDER_',
   orderOptions,
-  tickeOrder => `${tickeOrder.stand} ticket costs ${ticketOrder.cost}. Buy Ticket?`,
-  (ticketOrder, selection) =>
-    (ticketOrder.cost = selection.option.optionDisplayText)
+  tickeOrder => `${tickeOrder.stand.optionDisplayText} ticket costs R${ticketOrder.stand.standPrice}. Buy Ticket?`,
+  null
 );
+
 
 // Stand Options
 const standOptions = [
   {
-    option: new Option('Grand Stand', orderSelectionNode)
+    option: new StandOption('Grand Stand', orderSelectionNode, 400)
   },
   {
-    option: new Option('Side Stand', orderSelectionNode)
+    option: new StandOption('Side Stand', orderSelectionNode, 200)
   }
 ];
+
 const standSelectionNode = new NodeTpl(
   '_SELECT_STAND_',
   standOptions,
   tickeOrder => `Watch ${ticketOrder.match} from:`,
   (ticketOrder, selection) =>
-    (ticketOrder.stand = selection.option.optionDisplayText)
+    (ticketOrder.stand = selection.option)
 );
 
 // Match Options
@@ -70,7 +80,7 @@ const matchSelectionNode = new NodeTpl(
 
 const ticketOrder = {
   match: '',
-  stand: '',
+  stand: {},
   quantity: 1,
   cost: 5
 
@@ -103,18 +113,19 @@ const getOptions = nodeInstance => {
 app.put('*', (req, res) => {
   const { userInput } = req.body;
   const selectedOption = stateKeeper.node.processUserInput(userInput - 1);
-  console.log("Selected option: ", selectedOption)
+  const endSession = selectedOption.option.nextNodeTpl !== null ? false : true;
+  console.log("End session: ", endSession);
   stateKeeper.node.updateState(stateKeeper);
   const nextInstance = new NodeInstance(
     selectedOption.option.nextNodeTpl,
-    stateKeeper.node
+    stateKeeper.node,
   );
   const prompt = `${nextInstance.currTpl.getPromptText(stateKeeper.ticketOrder)}
   ${getOptions(nextInstance)}`;
   stateKeeper.node = nextInstance;
   const response = {
     prompt,
-    end: false
+    end: nextInstance.currTpl.options.length <= 0 ? true : false
   };
   res.send(response);
 });
