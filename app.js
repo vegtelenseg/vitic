@@ -23,7 +23,13 @@ const orderOptions = [
     option: new Option('R400', null)
   }
 ];
-const orderSelectionNode = new NodeTpl('_CONFIRM_ORDER_', orderOptions);
+const orderSelectionNode = new NodeTpl(
+  '_CONFIRM_ORDER_',
+  orderOptions,
+  tickeOrder => `Ticket costs ${ticketOrder.cost}. Buy Ticket?`,
+  (ticketOrder, selection) =>
+    (ticketOrder.cost = selection.option.optionDisplayText)
+);
 
 // Stand Options
 const standOptions = [
@@ -34,7 +40,13 @@ const standOptions = [
     option: new Option('Side Stand', orderSelectionNode)
   }
 ];
-const standSelectionNode = new NodeTpl('_SELECT_STAND_', standOptions);
+const standSelectionNode = new NodeTpl(
+  '_SELECT_STAND_',
+  standOptions,
+  tickeOrder => `Watch ${ticketOrder.match} from:`,
+  (ticketOrder, selection) =>
+    (ticketOrder.stand = selection.option.optionDisplayText)
+);
 
 // Match Options
 const matchOptions = [
@@ -48,15 +60,34 @@ const matchOptions = [
     option: new Option('FSS vs PLT', standSelectionNode)
   }
 ];
-const matchSelectionNode = new NodeTpl('_SELECT_MATCH_', matchOptions);
+const matchSelectionNode = new NodeTpl(
+  '_SELECT_MATCH_',
+  matchOptions,
+  null,
+  (ticketOrder, selection) =>
+    (ticketOrder.match = selection.option.optionDisplayText)
+);
 
 const landingnode = new NodeInstance(matchSelectionNode, null);
 
+const ticketOrder = {
+  match: '',
+  stand: '',
+  quantity: 1,
+  cost: 0
+};
+
+const stateKeeper = {
+  node: null,
+  ticketOrder
+};
+
 app.post('*', (req, res) => {
+  stateKeeper.node = landingnode;
   const prompt = `What to watch?
-  1. ${matchSelectionNode.getOption(0).option.optionDisplayText}
-  2. ${matchSelectionNode.getOption(1).option.optionDisplayText}
-  3. ${matchSelectionNode.getOption(2).option.optionDisplayText}`;
+  1. ${landingnode.currTpl.getOption(0).option.optionDisplayText}
+  2. ${landingnode.currTpl.getOption(1).option.optionDisplayText}
+  3. ${landingnode.currTpl.getOption(2).option.optionDisplayText}`;
   const response = {
     prompt,
     end: false
@@ -64,34 +95,23 @@ app.post('*', (req, res) => {
   res.send(response);
 });
 
+const getOptions = nodeInstance => {
+  const { options } = nodeInstance.currTpl;
+  return options.map((option, idx) => {
+    return ++idx + '. ' + option.option.optionDisplayText + '\n';
+  });
+};
 app.put('*', (req, res) => {
-  let { userInput } = req.body;
-  userInput = Number(userInput) - 1;
-  let selectedOption = landingnode.processUserInput(userInput);
-  let nextInstance = new NodeInstance(selectedOption.option.nextNodeTpl, landingnode);;
-  let prompt = null;
-  switch (nextInstance.currTpl.name) {
-    case '_SELECT_STAND_':
-      selectedOption = landingnode.processUserInput(userInput);
-      prompt = `Watch ${selectedOption.option.optionDisplayText} from stand:
-    1. ${nextInstance.currTpl.options[0].option.optionDisplayText}
-    2. ${nextInstance.currTpl.options[1].option.optionDisplayText}`;
-      nextInstance = new NodeInstance(
-        selectedOption.option.nextNodeTpl,
-        landingnode
-      );
-      break;
-    case '_CONFIRM_ORDER_':
-      selectedOption = landingnode.processUserInput(userInput);
-      prompt = `The ${selectedOption.option.optionDisplayText} costs  200
-      1. Buy Ticket
-      2. Go Back`;
-      break;
-    case '_SELECT_MATCH_':
-      break;
-    default:
-      break;
-  }
+  const { userInput } = req.body;
+  const selectedOption = stateKeeper.node.processUserInput(userInput - 1);
+  stateKeeper.node.updateState(stateKeeper);
+  const nextInstance = new NodeInstance(
+    selectedOption.option.nextNodeTpl,
+    stateKeeper.node
+  );
+  const prompt = `${nextInstance.currTpl.getPromptText(stateKeeper.ticketOrder)}
+  ${getOptions(nextInstance)}`;
+  stateKeeper.node = nextInstance;
   const response = {
     prompt,
     end: false
