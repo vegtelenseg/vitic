@@ -17,16 +17,16 @@ app.get('*', (req, res) => {
 // Order Options
 const orderOptions = [
   {
-    option: new Option('R200', null)
+    option: new Option('R400', null)
   },
   {
-    option: new Option('R400', null)
+    option: new Option('R200', null)
   }
 ];
 const orderSelectionNode = new NodeTpl(
   '_CONFIRM_ORDER_',
   orderOptions,
-  tickeOrder => `Ticket costs ${ticketOrder.cost}. Buy Ticket?`,
+  tickeOrder => `${tickeOrder.stand} ticket costs ${ticketOrder.cost}. Buy Ticket?`,
   (ticketOrder, selection) =>
     (ticketOrder.cost = selection.option.optionDisplayText)
 );
