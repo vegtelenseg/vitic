@@ -68,26 +68,25 @@ const matchSelectionNode = new NodeTpl(
     (ticketOrder.match = selection.option.optionDisplayText)
 );
 
-const landingnode = new NodeInstance(matchSelectionNode, null);
-
 const ticketOrder = {
   match: '',
   stand: '',
   quantity: 1,
-  cost: 0
-};
+  cost: 5
 
+}
 const stateKeeper = {
   node: null,
   ticketOrder
 };
 
 app.post('*', (req, res) => {
-  stateKeeper.node = landingnode;
+  stateKeeper.node = new NodeInstance(matchSelectionNode, null);
+  const { node } = stateKeeper;
   const prompt = `What to watch?
-  1. ${landingnode.currTpl.getOption(0).option.optionDisplayText}
-  2. ${landingnode.currTpl.getOption(1).option.optionDisplayText}
-  3. ${landingnode.currTpl.getOption(2).option.optionDisplayText}`;
+  1. ${node.currTpl.getOption(0).option.optionDisplayText}
+  2. ${node.currTpl.getOption(1).option.optionDisplayText}
+  3. ${node.currTpl.getOption(2).option.optionDisplayText}`;
   const response = {
     prompt,
     end: false
@@ -104,6 +103,7 @@ const getOptions = nodeInstance => {
 app.put('*', (req, res) => {
   const { userInput } = req.body;
   const selectedOption = stateKeeper.node.processUserInput(userInput - 1);
+  console.log("Selected option: ", selectedOption)
   stateKeeper.node.updateState(stateKeeper);
   const nextInstance = new NodeInstance(
     selectedOption.option.nextNodeTpl,
