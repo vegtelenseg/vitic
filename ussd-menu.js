@@ -38,10 +38,14 @@ class NodeInstance {
   }
 
   processUserInput(userInput) {
-    this.selectedOption = this.currentTemplate.getOption(userInput);
-    return this.selectedOption;
+    return (this.selectedOption = this.currentTemplate.getOption(userInput));
   }
-
+  setBackOption(nodeInstance) {
+		const {currentTemplate, previousNodeInstance} = nodeInstance;
+		const length = currentTemplate.options.length - 1;
+		currentTemplate.options[length].nextNodeTemplate = currentTemplate;
+		this.currentTemplate = this.currentTemplate === null ? previousNodeInstance.currentTemplate : this.currentTemplate;
+  }
   updateState(stateKeeper) {
     const { ticketOrderUpdater } = this.currentTemplate;
     const { ticketOrder } = stateKeeper;

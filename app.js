@@ -33,7 +33,10 @@ const stateKeeper = {
 const endSessionSelectionNode = new NodeTemplate(
   '_END_SESSION_',
   [],
-  ticketOrder => `Ticket for ${ticketOrder.match}, watching from the ${ticketOrder.stand.optionDisplayText} has been purchased successfully. You will receive an sms.`,
+  ticketOrder =>
+    `Ticket for ${ticketOrder.match}, watching from the ${
+      ticketOrder.stand.optionDisplayText
+    } has been purchased successfully. You will receive an sms soon.`,
   null
 );
 
@@ -43,7 +46,7 @@ const orderOptions = [
     option: new Option('Confirm', endSessionSelectionNode)
   },
   {
-    option: new Option('Back', stateKeeper.node)
+    option: new Option('Back', null)
   }
 ];
 
@@ -64,6 +67,9 @@ const standOptions = [
   },
   {
     option: new StandOption('Side Stand', orderSelectionNode, 200)
+  },
+  {
+    option: new Option('Back', null)
   }
 ];
 
@@ -89,7 +95,7 @@ const matchOptions = [
 const matchSelectionNode = new NodeTemplate(
   '_SELECT_MATCH_',
   matchOptions,
-  null,
+  ticketOrder => 'Watch',
   (ticketOrder, selection) =>
     (ticketOrder.match = selection.option.optionDisplayText)
 );
@@ -116,15 +122,15 @@ const getOptions = nodeInstance => {
 };
 app.put('*', (req, res) => {
   const { userInput } = req.body;
-  const selectedOption = stateKeeper.node.processUserInput(userInput - 1);
-  stateKeeper.node.updateState(stateKeeper);
+  const { node, ticketOrder } = stateKeeper;
+  const selectedOption = node.processUserInput(userInput - 1);
+  node.updateState(stateKeeper);
   const nextInstance = new NodeInstance(
     selectedOption.option.nextNodeTemplate,
-    stateKeeper.node
+    node
   );
-  const prompt = `${nextInstance.currentTemplate.getPromptText(
-    stateKeeper.ticketOrder
-  )}
+  nextInstance.setBackOption(node);
+  const prompt = `${nextInstance.currentTemplate.getPromptText(ticketOrder)}
   ${getOptions(nextInstance)}`;
   stateKeeper.node = nextInstance;
   const response = {
