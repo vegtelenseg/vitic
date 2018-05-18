@@ -44,19 +44,17 @@ class NodeInstance {
     const { ticketOrderUpdater } = this.currentTemplate;
     const { ticketOrder } = stateKeeper;
     let updatedTicketOrder = null;
-    if (ticketOrderUpdater) {
+    if (ticketOrderUpdater)
       return (updatedTicketOrder = ticketOrderUpdater(ticketOrder, this.selectedOption));
-    } else {
-      return (updatedTicketOrder = ticketOrder);
-    }
-    stateKeeper.ticketOrder = updatedTicketOrder;
+    else return (updatedTicketOrder = ticketOrder);
   }
   setBackOption(nodeInstance) {
     const { currentTemplate, previousNodeInstance } = nodeInstance;
     const length = currentTemplate.options.length - 1;
     currentTemplate.options[length].nextNodeTemplate = currentTemplate;
-    this.currentTemplate =
-      this.currentTemplate === null ? previousNodeInstance.currentTemplate : this.currentTemplate;
+    this.currentTemplate = !this.currentTemplate
+      ? previousNodeInstance.currentTemplate
+      : this.currentTemplate;
   }
   getOptions(nodeInstance) {
     const { options } = nodeInstance.currentTemplate;
