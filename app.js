@@ -2,6 +2,7 @@ const app = require('express')();
 const bodyParser = require('body-parser');
 const logger = require('morgan');
 const cors = require('cors');
+const helmet = require('helmet');
 const { NodeInstance } = require('./ussd-menu');
 const {
   endSessionSelectionNode,
@@ -12,6 +13,10 @@ const {
 } = require('./store');
 const port = process.env.PORT || 3030;
 
+app.use(helmet({
+	noCache: true,
+	referrerPolicy: true
+}));
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
