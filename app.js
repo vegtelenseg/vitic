@@ -13,10 +13,12 @@ const {
 } = require('./store');
 const port = process.env.PORT || 3030;
 
-app.use(helmet({
-	noCache: true,
-	referrerPolicy: true
-}));
+app.use(
+  helmet({
+    noCache: true,
+    referrerPolicy: true
+  })
+);
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -37,7 +39,8 @@ const renderOptions = options =>
 app.post('*', (req, res) => {
   stateKeeper.node = new NodeInstance(matchSelectionNode, null);
   const { node } = stateKeeper;
-  const prompt = 'What to watch?\n' + renderOptions(node.currentTemplate.options);
+  const prompt =
+    node.currentTemplate.getPromptText(ticketOrder) + renderOptions(node.currentTemplate.options);
   const response = {
     prompt,
     end: false

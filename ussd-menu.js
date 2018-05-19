@@ -52,9 +52,9 @@ class NodeInstance {
     const { currentTemplate, previousNodeInstance } = nodeInstance;
     const length = currentTemplate.options.length - 1;
     currentTemplate.options[length].nextNodeTemplate = currentTemplate;
-    this.currentTemplate = !this.currentTemplate
+    return (this.currentTemplate = !this.currentTemplate
       ? previousNodeInstance.currentTemplate
-      : this.currentTemplate;
+      : this.currentTemplate);
   }
   getOptions(nodeInstance) {
     const { options } = nodeInstance.currentTemplate;
