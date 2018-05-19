@@ -72,7 +72,7 @@ const matchOptions = [
 const matchSelectionNode = new NodeTemplate(
   '_SELECT_MATCH_',
   matchOptions,
-  ticketOrder => 'Watch',
+  ticketOrder => 'What to watch?\n',
   (ticketOrder, selection) => (ticketOrder.match = selection.option.optionDisplayText)
 );
 
