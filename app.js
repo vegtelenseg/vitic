@@ -4,13 +4,7 @@ const logger = require('morgan');
 const cors = require('cors');
 const helmet = require('helmet');
 const { NodeInstance } = require('./ussd-menu');
-const {
-  endSessionSelectionNode,
-  orderSelectionNode,
-  standSelectionNode,
-  matchSelectionNode,
-  ticketOrder
-} = require('./store');
+const Store = require('./store');
 const port = process.env.PORT || 3030;
 
 app.use(
@@ -19,6 +13,7 @@ app.use(
     referrerPolicy: true
   })
 );
+
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -30,15 +25,14 @@ app.get('*', (req, res) => {
 
 const stateKeeper = {
   node: null,
-  ticketOrder
+  ticketOrder: Store.ticketOrder
 };
 
-const renderOptions = options =>
-  options.map((option, idx) => idx + 1 + '. ' + options[idx].option.optionDisplayText + '\n');
+const renderOptions = options => options.map((option, idx) => idx + 1 + '. ' + options[idx].option.optionDisplayText + '\n');
 
 app.post('*', (req, res) => {
-  stateKeeper.node = new NodeInstance(matchSelectionNode, null);
-  const { node } = stateKeeper;
+  stateKeeper.node = new NodeInstance(Store.matchSelectionNode(), null);
+  const { node, ticketOrder } = stateKeeper;
   const prompt =
     node.currentTemplate.getPromptText(ticketOrder) + renderOptions(node.currentTemplate.options);
   const response = {
@@ -52,9 +46,9 @@ app.put('*', (req, res) => {
   const { userInput } = req.body;
   const { node, ticketOrder } = stateKeeper;
   const selectedOption = node.processUserInput(userInput - 1);
-  node.updateState(stateKeeper);
-  const nextInstance = new NodeInstance(selectedOption.option.nextNodeTemplate, node);
-  nextInstance.setBackOption(node);
+	node.updateState(stateKeeper);
+	console.log("Nxt instance: ", selectedOption.option.optionDisplayText);
+	const nextInstance = new NodeInstance(selectedOption.option.optionDisplayText === 'Back' ?selectedOption.option.nextNodeTemplate() : selectedOption.option.nextNodeTemplate, node);
   const prompt = `${nextInstance.currentTemplate.getPromptText(ticketOrder)}
   ${nextInstance.getOptions(nextInstance)}`;
   stateKeeper.node = nextInstance;

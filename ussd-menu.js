@@ -3,7 +3,9 @@ class NodeTemplate {
     this.name = name;
     this.options = options;
     this.promptTextGenerator = promptTextGenerator;
-    this.ticketOrderUpdater = ticketOrderUpdater;
+		this.ticketOrderUpdater = ticketOrderUpdater;
+		this.getOption = this.getOption.bind(this);
+		this.getPromptText = this.getPromptText.bind(this);
   }
 
   getPromptText(ticketOrder) {
@@ -18,8 +20,15 @@ class NodeTemplate {
 class Option {
   constructor(optionDisplayText, nextNodeTemplate) {
     this.optionDisplayText = optionDisplayText;
-    this.nextNodeTemplate = nextNodeTemplate;
+		this.nextNodeTemplate = nextNodeTemplate;
+		this.getNextNodeTemplate = this.getNextNodeTemplate.bind(this);
   }
+  setPrevNodeTemplate(prevNodeTemplate) {
+    return (this.prevNodeTemplate = prevNodeTemplate);
+	}
+	getNextNodeTemplate(){
+		return this.nextNodeTemplate;
+	}
 }
 
 class StandOption extends Option {
@@ -38,23 +47,22 @@ class NodeInstance {
   }
 
   processUserInput(userInput) {
-    return (this.selectedOption = this.currentTemplate.getOption(userInput));
+    return (this.selectedOption = this.currentTemplate.options[userInput]);
   }
   updateState(stateKeeper) {
     const { ticketOrderUpdater } = this.currentTemplate;
-    const { ticketOrder } = stateKeeper;
+		const { ticketOrder } = stateKeeper;
     let updatedTicketOrder = null;
     if (ticketOrderUpdater)
       return (updatedTicketOrder = ticketOrderUpdater(ticketOrder, this.selectedOption));
     else return (updatedTicketOrder = ticketOrder);
   }
-  setBackOption(nodeInstance) {
-    const { currentTemplate, previousNodeInstance } = nodeInstance;
-    const length = currentTemplate.options.length - 1;
-    currentTemplate.options[length].nextNodeTemplate = currentTemplate;
-    return (this.currentTemplate = !this.currentTemplate
-      ? previousNodeInstance.currentTemplate
-      : this.currentTemplate);
+  setBackOption(prevNodeTemplate) {
+    /*const { currentTemplate, previousNodeInstance } = nodeInstance;
+		if (this.currentTemplate === null)
+			return this.currentTemplate =nodeInstance;
+		return this.currentTemplate*/
+    return (this.currentTemplate = prevNodeTemplate);
   }
   getOptions(nodeInstance) {
     const { options } = nodeInstance.currentTemplate;
