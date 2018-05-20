@@ -3,9 +3,7 @@ class NodeTemplate {
     this.name = name;
     this.options = options;
     this.promptTextGenerator = promptTextGenerator;
-		this.ticketOrderUpdater = ticketOrderUpdater;
-		this.getOption = this.getOption.bind(this);
-		this.getPromptText = this.getPromptText.bind(this);
+    this.ticketOrderUpdater = ticketOrderUpdater;
   }
 
   getPromptText(ticketOrder) {
@@ -20,15 +18,8 @@ class NodeTemplate {
 class Option {
   constructor(optionDisplayText, nextNodeTemplate) {
     this.optionDisplayText = optionDisplayText;
-		this.nextNodeTemplate = nextNodeTemplate;
-		this.getNextNodeTemplate = this.getNextNodeTemplate.bind(this);
+    this.nextNodeTemplate = nextNodeTemplate;
   }
-  setPrevNodeTemplate(prevNodeTemplate) {
-    return (this.prevNodeTemplate = prevNodeTemplate);
-	}
-	getNextNodeTemplate(){
-		return this.nextNodeTemplate;
-	}
 }
 
 class StandOption extends Option {
@@ -47,28 +38,21 @@ class NodeInstance {
   }
 
   processUserInput(userInput) {
-    return (this.selectedOption = this.currentTemplate.options[userInput]);
+    return (this.selectedOption = this.currentTemplate.getOption(userInput));
   }
   updateState(stateKeeper) {
     const { ticketOrderUpdater } = this.currentTemplate;
-		const { ticketOrder } = stateKeeper;
+    const { ticketOrder } = stateKeeper;
     let updatedTicketOrder = null;
     if (ticketOrderUpdater)
       return (updatedTicketOrder = ticketOrderUpdater(ticketOrder, this.selectedOption));
-    else return (updatedTicketOrder = ticketOrder);
+    return (updatedTicketOrder = ticketOrder);
   }
-  setBackOption(prevNodeTemplate) {
-    /*const { currentTemplate, previousNodeInstance } = nodeInstance;
-		if (this.currentTemplate === null)
-			return this.currentTemplate =nodeInstance;
-		return this.currentTemplate*/
-    return (this.currentTemplate = prevNodeTemplate);
-  }
-  getOptions(nodeInstance) {
-    const { options } = nodeInstance.currentTemplate;
-    return options.map((option, idx) => {
-      return ++idx + '. ' + option.option.optionDisplayText + '\n';
-    });
+  getOptions() {
+    const { options } = this.currentTemplate;
+    return options
+      .map((option, idx) => `${++idx}. ${option.option.optionDisplayText}` + '\n')
+      .join('');
   }
 }
 

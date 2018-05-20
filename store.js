@@ -13,18 +13,18 @@ module.exports = {
         option: new Option('Confirm', this.endSessionSelectionNode())
       },
       {
-        option: new Option('Back', this.standSelectionNode)
+        option: new Option('Back', this.standSelectionNode.bind(this))
       }
     ];
-	},
-	orderSelectionNode() {
+  },
+  orderSelectionNode() {
     return new NodeTemplate(
       '_CONFIRM_ORDER_',
       this.orderOptions(),
       ticketOrder =>
         `${ticketOrder.stand.optionDisplayText} ticket costs R${
           ticketOrder.stand.standPrice
-        }. Buy Ticket?`,
+        }. Buy Ticket?` + '\n',
       null
     );
   },
@@ -37,22 +37,22 @@ module.exports = {
         option: new StandOption('Side Stand', this.orderSelectionNode(), 200)
       },
       {
-        option: new Option('Back', this.matchSelectionNode)
+        option: new Option('Back', this.matchSelectionNode.bind(this))
       }
     ];
-	},
-	standSelectionNode() {
+  },
+  standSelectionNode() {
     return new NodeTemplate(
       '_SELECT_STAND_',
       this.standOptions(),
-      ticketOrder => `Watch ${ticketOrder.match} from:`,
+      ticketOrder => `Watch ${ticketOrder.match} from:` + '\n',
       (ticketOrder, selection) => (ticketOrder.stand = selection.option)
     );
   },
   matchOptions() {
     return [
       {
-        option: new Option('CHI vs PIR', this.standSelectionNode()),
+        option: new Option('CHI vs PIR', this.standSelectionNode())
       },
       {
         option: new Option('SUN vs FCB', this.standSelectionNode())
@@ -66,7 +66,7 @@ module.exports = {
     return new NodeTemplate(
       '_SELECT_MATCH_',
       this.matchOptions(),
-      ticketOrder => 'What to watch?\n',
+      () => 'What to watch?\n',
       (ticketOrder, selection) => (ticketOrder.match = selection.option.optionDisplayText)
     );
   },
