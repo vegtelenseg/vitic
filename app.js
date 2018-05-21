@@ -25,7 +25,8 @@ app.get('*', (req, res) => {
 
 const stateKeeper = {
   node: null,
-  ticketOrder: Store.ticketOrder
+  ticketOrder: Store.ticketOrder,
+  msidn: 0
 };
 
 app.post('*', (req, res) => {
