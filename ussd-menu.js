@@ -28,6 +28,12 @@ class StandOption extends Option {
     this.standPrice = standPrice;
   }
 }
+class MatchOption extends Option {
+  constructor(optionDisplayText, nextNodeTemplate, matchPrice) {
+    super(optionDisplayText, nextNodeTemplate);
+    this.matchPrice = matchPrice;
+  }
+}
 
 class NodeInstance {
   constructor(currentTemplate, previousNodeInstance) {
@@ -60,5 +66,6 @@ module.exports = {
   NodeTemplate,
   Option,
   StandOption,
+  MatchOption,
   NodeInstance
 };
