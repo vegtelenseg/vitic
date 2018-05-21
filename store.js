@@ -23,12 +23,12 @@ module.exports = {
       this.orderOptions(),
       ticketOrder =>
         `Match Costs = R${ticketOrder.match.price}. ${
-          ticketOrder.stand.optionDisplayText
+        ticketOrder.stand.optionDisplayText
         } Costs = R${ticketOrder.stand.standPrice}.` +
         '\n' +
         `Total = R${ticketOrder.match.price + ticketOrder.stand.standPrice}. Confirm Order?` +
         '\n',
-      null,
+      ticketOrder => ticketOrder.cost = ticketOrder.match.price + ticketOrder.stand.standPrice,
       ticketOrder =>
         console.log('Confirm Order: ', ticketOrder.match.price + ticketOrder.stand.standPrice)
     );
@@ -64,6 +64,9 @@ module.exports = {
       },
       {
         option: new MatchOption('FSS vs PLT', this.standSelectionNode(), 200)
+      },
+      {
+        option: new MatchOption('COSMOS vs Bush Bucks', this.standSelectionNode(), 100)
       }
     ];
   },
@@ -84,9 +87,8 @@ module.exports = {
       '_END_SESSION_',
       [],
       ticketOrder =>
-        `Ticket for ${ticketOrder.match.name} (R${ticketOrder.match.price +
-          ticketOrder.stand.standPrice}), watching from the ${
-          ticketOrder.stand.optionDisplayText
+        `Ticket for ${ticketOrder.match.name} (R${ticketOrder.cost}), watching from the ${
+        ticketOrder.stand.optionDisplayText
         } has been purchased successfully. You will receive an sms soon.`,
       null
     );
