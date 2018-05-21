@@ -1,15 +1,46 @@
+class NodeInstance {
+  constructor(currentTemplate, previousNodeInstance) {
+    this.currentTemplate = currentTemplate;
+    this.previousNodeInstance = previousNodeInstance;
+    this.userInput = '';
+    this.selectedOption = null;
+    this.getOptions = this.getOptions.bind(this);
+  }
+
+  processUserInput(userInput) {
+    return (this.selectedOption = this.currentTemplate.getOption(userInput));
+  }
+  updateState(stateKeeper) {
+    const { ticketOrderUpdater } = this.currentTemplate;
+    const { ticketOrder } = stateKeeper;
+    let updatedTicketOrder = null;
+    if (ticketOrderUpdater)
+      return (updatedTicketOrder = ticketOrderUpdater(ticketOrder, this.selectedOption));
+    return (updatedTicketOrder = ticketOrder);
+  }
+  getOptions() {
+    const { options } = this.currentTemplate;
+    return options
+      .map((option, idx) => `${++idx}. ${option.option.optionDisplayText}` + '\n')
+      .join('');
+  }
+}
+
 class NodeTemplate {
-  constructor(name, options, promptTextGenerator, ticketOrderUpdater) {
+  constructor(name, options, promptTextGenerator, ticketOrderUpdater, processPayment) {
     this.name = name;
     this.options = options;
     this.promptTextGenerator = promptTextGenerator;
     this.ticketOrderUpdater = ticketOrderUpdater;
+    this.processPayment = processPayment;
   }
 
   getPromptText(ticketOrder) {
     return this.promptTextGenerator(ticketOrder);
   }
-
+  processPayment() {
+    return this.processPayment(ticketOrder);
+  }
   getOption(idx) {
     return this.options[idx];
   }
@@ -32,33 +63,6 @@ class MatchOption extends Option {
   constructor(optionDisplayText, nextNodeTemplate, matchPrice) {
     super(optionDisplayText, nextNodeTemplate);
     this.matchPrice = matchPrice;
-  }
-}
-
-class NodeInstance {
-  constructor(currentTemplate, previousNodeInstance) {
-    this.currentTemplate = currentTemplate;
-    this.previousNodeInstance = previousNodeInstance;
-    this.userInput = '';
-    this.selectedOption = null;
-  }
-
-  processUserInput(userInput) {
-    return (this.selectedOption = this.currentTemplate.getOption(userInput));
-  }
-  updateState(stateKeeper) {
-    const { ticketOrderUpdater } = this.currentTemplate;
-    const { ticketOrder } = stateKeeper;
-    let updatedTicketOrder = null;
-    if (ticketOrderUpdater)
-      return (updatedTicketOrder = ticketOrderUpdater(ticketOrder, this.selectedOption));
-    return (updatedTicketOrder = ticketOrder);
-  }
-  getOptions() {
-    const { options } = this.currentTemplate;
-    return options
-      .map((option, idx) => `${++idx}. ${option.option.optionDisplayText}` + '\n')
-      .join('');
   }
 }
 

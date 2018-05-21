@@ -28,11 +28,9 @@ module.exports = {
         '\n' +
         `Total = R${ticketOrder.match.price + ticketOrder.stand.standPrice}. Confirm Order?` +
         '\n',
+      null,
       ticketOrder =>
-        console.log(
-          'Confirm Order . About to buy: ',
-          ticketOrder.match.price + ticketOrder.stand.standPrice
-        )
+        console.log('Confirm Order: ', ticketOrder.match.price + ticketOrder.stand.standPrice)
     );
   },
   standOptions() {

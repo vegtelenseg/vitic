@@ -31,7 +31,8 @@ const stateKeeper = {
 app.post('*', (req, res) => {
   stateKeeper.node = new NodeInstance(Store.matchSelectionNode(), null);
   const { node, ticketOrder } = stateKeeper;
-  const prompt = node.currentTemplate.getPromptText(ticketOrder) + node.getOptions();
+  const { currentTemplate } = node;
+  const prompt = currentTemplate.getPromptText(ticketOrder) + node.getOptions();
   const response = {
     prompt,
     end: false
@@ -44,20 +45,18 @@ app.put('*', (req, res) => {
   const { node, ticketOrder } = stateKeeper;
   const selectedOption = node.processUserInput(userInput - 1);
   node.updateState(stateKeeper);
-  const { optionDisplayText, nextNodeTemplate } = selectedOption.option;
-  const nextTemplateToRender = optionDisplayText === 'Back' ? nextNodeTemplate() : nextNodeTemplate;
-  const nextInstance = new NodeInstance(nextTemplateToRender, node);
-  const prompt = `${nextInstance.currentTemplate.getPromptText(
-    ticketOrder
-  )} ${nextInstance.getOptions()}`;
+  let { nextNodeTemplate } = selectedOption.option;
+  nextNodeTemplate = typeof nextNodeTemplate === 'function' ? nextNodeTemplate() : nextNodeTemplate;
+  const nextInstance = new NodeInstance(nextNodeTemplate, node);
+  const { currentTemplate, getOptions } = nextInstance;
+  const prompt = `${currentTemplate.getPromptText(ticketOrder)} ${getOptions()}`;
+  const { options } = currentTemplate;
   const response = {
     prompt,
-    end: nextInstance.currentTemplate.options.length <= 0 ? true : false
+    end: options.length <= 0 ? true : false
   };
   stateKeeper.node = nextInstance;
   res.send(response);
 });
 
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-});
+app.listen(port, () => console.log(`Server running on port ${port}`));
