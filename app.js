@@ -26,7 +26,17 @@ app.get('*', (req, res) => {
 const stateKeeper = {
   node: null,
   ticketOrder: Store.ticketOrder,
-  msidn: 0
+  msidn: '0'
+};
+const resetTicketOrder = currentStateKeeper => {
+  return (stateKeeper.ticketOrder = {
+    match: {},
+    stand: {},
+    quantity: 1,
+    cost: 5,
+    bank: null,
+    msisdn: null
+  });
 };
 
 app.post('*', (req, res) => {
@@ -42,8 +52,9 @@ app.post('*', (req, res) => {
 });
 
 app.put('*', (req, res) => {
-  const { userInput } = req.body;
+  const { userInput, msisdn } = req.body;
   const { node, ticketOrder } = stateKeeper;
+  if (!ticketOrder.msisdn) ticketOrder.msisdn = req.body.msisdn || '';
   const selectedOption = node.processUserInput(userInput - 1);
   node.updateState(stateKeeper);
   let { nextNodeTemplate } = selectedOption.option;
@@ -51,12 +62,20 @@ app.put('*', (req, res) => {
   const nextInstance = new NodeInstance(nextNodeTemplate, node);
   const { currentTemplate, getOptions } = nextInstance;
   const prompt = `${currentTemplate.getPromptText(ticketOrder)} ${getOptions()}`;
+  console.log(currentTemplate.name + ': ' + prompt.length + '\n');
   const { options } = currentTemplate;
+  const endSession = options.length === 0;
+  if (endSession) {
+    console.log('Order Preview: ', ticketOrder);
+    // Send the sms here and then reset the ticket Order Object
+    resetTicketOrder(stateKeeper);
+  }
   const response = {
     prompt,
-    end: options.length <= 0 ? true : false
+    end: endSession
   };
   stateKeeper.node = nextInstance;
+
   res.send(response);
 });
 

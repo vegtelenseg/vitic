@@ -1,16 +1,83 @@
-const { Option, StandOption, MatchOption, NodeTemplate } = require('./ussd-menu');
+const { Option, StandOption, MatchOption, BankOption, NodeTemplate } = require('./ussd-menu');
 
 module.exports = {
   ticketOrder: {
     match: {},
     stand: {},
     quantity: 1,
-    cost: 5
+    cost: 5,
+    bank: null,
+    msisdn: null
+  },
+  endSessionSelectionNode() {
+    return new NodeTemplate(
+      '_END_SESSION_',
+      [],
+      ticketOrder =>
+        `Thank you. Reference sent, via SMS, to ${
+          ticketOrder.msisdn
+        }, with activation instructions.` + '\nEnjoy the game',
+      null
+    );
+  },
+  bankOptions() {
+    return [
+      {
+        option: new BankOption(
+          'FNB',
+          this.endSessionSelectionNode(),
+          'First National Bank',
+          25421,
+          62627623190
+        )
+      },
+      {
+        option: new BankOption(
+          'Capitec',
+          this.endSessionSelectionNode(),
+          'Capitec Bank',
+          24866,
+          62627623190
+        )
+      },
+      {
+        option: new BankOption('Absa', this.endSessionSelectionNode(), 'Absa', 24811, 62627623190)
+      },
+      {
+        option: new BankOption(
+          'Standard Bank',
+          this.endSessionSelectionNode(),
+          'Standard Bank',
+          24121,
+          62627623190
+        )
+      },
+      {
+        option: new BankOption(
+          'NedBank',
+          this.endSessionSelectionNode(),
+          'NedBank',
+          24111,
+          62627623190
+        )
+      },
+      {
+        option: new Option('Back', this.orderSelectionNode.bind(this))
+      }
+    ];
+  },
+  bankOptionSelectionNode() {
+    return new NodeTemplate(
+      '_SELECT_BANK',
+      this.bankOptions(),
+      ticketOrder => 'Deposit ticket funds via:\n',
+      (ticketOrder, selection) => (ticketOrder.bank = selection.option)
+    );
   },
   orderOptions() {
     return [
       {
-        option: new Option('Confirm', this.endSessionSelectionNode())
+        option: new Option('Confirm', this.bankOptionSelectionNode())
       },
       {
         option: new Option('Back', this.standSelectionNode.bind(this))
@@ -21,14 +88,14 @@ module.exports = {
     return new NodeTemplate(
       '_CONFIRM_ORDER_',
       this.orderOptions(),
-      ticketOrder =>
-        `Match Costs = R${ticketOrder.match.price}. ${
-        ticketOrder.stand.optionDisplayText
-        } Costs = R${ticketOrder.stand.standPrice}.` +
+      ({ match, stand }) =>
+        `Match Costs = R${match.price.toFixed(2)}.` +
         '\n' +
-        `Total = R${ticketOrder.match.price + ticketOrder.stand.standPrice}. Confirm Order?` +
+        `${stand.optionDisplayText} Costs = R${stand.standPrice.toFixed(2)}.` +
+        '\n' +
+        `Total = R${(match.price + stand.standPrice).toFixed(2)}. Confirm Order?` +
         '\n',
-      ticketOrder => ticketOrder.cost = ticketOrder.match.price + ticketOrder.stand.standPrice,
+      ticketOrder => (ticketOrder.cost = ticketOrder.match.price + ticketOrder.stand.standPrice),
       ticketOrder =>
         console.log('Confirm Order: ', ticketOrder.match.price + ticketOrder.stand.standPrice)
     );
@@ -80,17 +147,6 @@ module.exports = {
         ticketOrder.match.price = selection.option.matchPrice;
         return ticketOrder.match;
       }
-    );
-  },
-  endSessionSelectionNode() {
-    return new NodeTemplate(
-      '_END_SESSION_',
-      [],
-      ticketOrder =>
-        `Ticket for ${ticketOrder.match.name} (R${ticketOrder.cost}), watching from the ${
-        ticketOrder.stand.optionDisplayText
-        } has been purchased successfully. You will receive an sms soon.`,
-      null
     );
   }
 };
