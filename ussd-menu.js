@@ -2,7 +2,7 @@ class NodeInstance {
   constructor(currentTemplate, previousNodeInstance) {
     this.currentTemplate = currentTemplate;
     this.previousNodeInstance = previousNodeInstance;
-    this.userInput = '';
+    this.userInput = 0;
     this.selectedOption = null;
     this.getOptions = this.getOptions.bind(this);
   }
@@ -66,10 +66,20 @@ class MatchOption extends Option {
   }
 }
 
+class BankOption extends Option {
+  constructor(optionDisplayText, nextNodeTemplate, bankName, branchCode, accountNumber) {
+    super(optionDisplayText, nextNodeTemplate);
+    this.bankName = bankName;
+    this.branchCode = branchCode;
+    this.accountNumber = accountNumber;
+  }
+}
+
 module.exports = {
   NodeTemplate,
   Option,
   StandOption,
   MatchOption,
+  BankOption,
   NodeInstance
 };
