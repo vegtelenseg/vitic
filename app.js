@@ -25,7 +25,7 @@ app.get('*', (req, res) => {
 
 const stateKeeper = {
   node: null,
-  ticketOrder: Store.ticketOrder,
+  ticketOrder: Store.ticketOrder
 };
 const resetTicketOrder = currentStateKeeper => {
   stateKeeper.ticketOrder = {
@@ -35,13 +35,13 @@ const resetTicketOrder = currentStateKeeper => {
     cost: 5,
     bank: null,
     msisdn: null
-	};
-	return;
+  };
+  return;
 };
 
 app.post('*', (req, res) => {
-	stateKeeper.node = new NodeInstance(Store.matchSelectionNode(), null);
-	stateKeeper.ticketOrder.msisdn = req.body.msisdn;
+  stateKeeper.node = new NodeInstance(Store.matchSelectionNode(), null);
+  stateKeeper.ticketOrder.msisdn = req.body.msisdn;
   const { node, ticketOrder } = stateKeeper;
   const { currentTemplate } = node;
   const prompt = currentTemplate.getPromptText(ticketOrder) + node.getOptions();
@@ -54,8 +54,7 @@ app.post('*', (req, res) => {
 
 app.put('*', (req, res) => {
   const { userInput, msisdn } = req.body;
-	const { node, ticketOrder } = stateKeeper;
-	console.log("Req Body: ", req.body)
+  const { node, ticketOrder } = stateKeeper;
   if (!ticketOrder.msisdn) ticketOrder.msisdn = req.body.msisdn || '';
   const selectedOption = node.processUserInput(userInput - 1);
   node.updateState(stateKeeper);
@@ -64,7 +63,6 @@ app.put('*', (req, res) => {
   const nextInstance = new NodeInstance(nextNodeTemplate, node);
   const { currentTemplate, getOptions } = nextInstance;
   const prompt = `${currentTemplate.getPromptText(ticketOrder)} ${getOptions()}`;
-  console.log(currentTemplate.name + ': ' + prompt.length + '\n');
   const { options } = currentTemplate;
   const endSession = options.length === 0;
   if (endSession) {

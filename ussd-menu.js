@@ -19,20 +19,18 @@ class NodeInstance {
     return (updatedTicketOrder = ticketOrder);
   }
   getOptions() {
-    const { options } = this.currentTemplate;
-    return options
+    return this.currentTemplate.options
       .map((option, idx) => `${++idx}. ${option.option.optionDisplayText}` + '\n')
       .join('');
   }
 }
 
 class NodeTemplate {
-  constructor(name, options, promptTextGenerator, ticketOrderUpdater, processPayment) {
+  constructor(name, options, promptTextGenerator, ticketOrderUpdater) {
     this.name = name;
     this.options = options;
     this.promptTextGenerator = promptTextGenerator;
     this.ticketOrderUpdater = ticketOrderUpdater;
-    this.processPayment = processPayment;
   }
 
   getPromptText(ticketOrder) {

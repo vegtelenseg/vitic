@@ -108,11 +108,9 @@ module.exports = {
       {
         option: new StandOption('East Stand', this.orderSelectionNode(), 80)
       },
-      ,
       {
         option: new StandOption('Party Stand', this.orderSelectionNode(), 150)
       },
-      ,
       {
         option: new StandOption('Family Stand', this.orderSelectionNode(), 50)
       },
