@@ -93,7 +93,7 @@ module.exports = {
         '\n' +
         `${stand.optionDisplayText} costs = R${stand.standPrice.toFixed(2)}.` +
         '\n' +
-        `Total = R${(match.price + stand.standPrice).toFixed(2)}.` + '\n' +
+        `Total = R${(match.price + stand.standPrice).toFixed(2)}.` + '\n\n' +
         'Confirm Order?\n',
       ticketOrder => (ticketOrder.cost = ticketOrder.match.price + ticketOrder.stand.standPrice),
       ticketOrder =>
