@@ -91,10 +91,10 @@ module.exports = {
       ({ match, stand }) =>
         `Match Costs = R${match.price.toFixed(2)}.` +
         '\n' +
-        `${stand.optionDisplayText} Costs = R${stand.standPrice.toFixed(2)}.` +
+        `${stand.optionDisplayText} costs = R${stand.standPrice.toFixed(2)}.` +
         '\n' +
-        `Total = R${(match.price + stand.standPrice).toFixed(2)}. Confirm Order?` +
-        '\n',
+        `Total = R${(match.price + stand.standPrice).toFixed(2)}.` + '\n' +
+        'Confirm Order?\n',
       ticketOrder => (ticketOrder.cost = ticketOrder.match.price + ticketOrder.stand.standPrice),
       ticketOrder =>
         console.log('Confirm Order: ', ticketOrder.match.price + ticketOrder.stand.standPrice)
