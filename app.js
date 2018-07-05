@@ -54,6 +54,7 @@ app.post('*', (req, res) => {
 
 app.put('*', (req, res) => {
   const { userInput, msisdn } = req.body;
+  console.log("Req Body: ", req.body);
   const { node, ticketOrder } = stateKeeper;
   if (!ticketOrder.msisdn) ticketOrder.msisdn = msisdn || '';
   const selectedOption = node.processUserInput(userInput - 1);
