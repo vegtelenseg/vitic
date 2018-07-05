@@ -36,9 +36,6 @@ class NodeTemplate {
   getPromptText(ticketOrder) {
     return this.promptTextGenerator(ticketOrder);
   }
-  processPayment() {
-    return this.processPayment(ticketOrder);
-  }
   getOption(idx) {
     return this.options[idx];
   }

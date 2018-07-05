@@ -55,7 +55,7 @@ app.post('*', (req, res) => {
 app.put('*', (req, res) => {
   const { userInput, msisdn } = req.body;
   const { node, ticketOrder } = stateKeeper;
-  if (!ticketOrder.msisdn) ticketOrder.msisdn = req.body.msisdn || '';
+  if (!ticketOrder.msisdn) ticketOrder.msisdn = msisdn || '';
   const selectedOption = node.processUserInput(userInput - 1);
   node.updateState(stateKeeper);
   let { nextNodeTemplate } = selectedOption.option;
@@ -66,8 +66,34 @@ app.put('*', (req, res) => {
   const { options } = currentTemplate;
   const endSession = options.length === 0;
   if (endSession) {
-    console.log('Order Preview: ', ticketOrder);
-    // Send the sms here and then reset the ticket Order Object
+    // Send the sms here and then reset the ticket Order Object.
+    const Nexmo = require('nexmo');
+    const nexmo = new Nexmo({
+      apiKey: '70026f9d',
+      apiSecret: 'HDFl1QxjxGSDLrLK'
+    });
+ //   const cellphoneNumber = msisdn.replace(msisdn.charAt(0), '27');
+    const from = 'Vitic';
+    const to = msisdn;
+    const { match, stand, bank, cost } = ticketOrder;
+    const text =
+      `Thanks for purchasing the ${match.name} game ticket. You will be watching from the ${
+        stand.optionDisplayText
+      }.` +
+      '\n' +
+      `To activate your ticket. Please make a deposit of R${cost} to the following bank account.` +
+      '\n\n' +
+      `Bank Name: ${bank.bankName}` +
+      '\n' +
+      `Branch Code: ${bank.branchCode}` +
+      '\n' +
+      `Account No.: ${bank.accountNumber}` +
+      '\n' +
+      'Reference: 3hfuw68Rgt' +
+      '\n\n' +
+      'Enjoy the game :)';
+    console.log('Text:\n', text);
+    nexmo.message.sendSms(from, to, text);
     resetTicketOrder(stateKeeper);
   }
   const response = {
