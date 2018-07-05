@@ -74,7 +74,9 @@ app.put('*', (req, res) => {
     });
  //   const cellphoneNumber = msisdn.replace(msisdn.charAt(0), '27');
     const from = '27423148669317';
+    console.log("Mmber: ", msisdn)
     const to = JSON.stringify(msisdn);
+    console.log("Number: ", to);
     const { match, stand, bank, cost } = ticketOrder;
     const text =
       `Thanks for purchasing the ${match.name} game ticket. You will be watching from the ${
