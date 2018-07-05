@@ -73,7 +73,7 @@ app.put('*', (req, res) => {
       apiSecret: 'HDFl1QxjxGSDLrLK'
     });
  //   const cellphoneNumber = msisdn.replace(msisdn.charAt(0), '27');
-    const from = 'Vitic';
+    const from = '27423148669317';
     const to = msisdn;
     const { match, stand, bank, cost } = ticketOrder;
     const text =
