@@ -42,7 +42,6 @@ const resetTicketOrder = currentStateKeeper => {
 app.post('*', (req, res) => {
   stateKeeper.node = new NodeInstance(Store.matchSelectionNode(), null);
   stateKeeper.ticketOrder.msisdn = req.body.msisdn;
-  console.log("The MSISDN: ", req.body);
   const { node, ticketOrder } = stateKeeper;
   const { currentTemplate } = node;
   const prompt = currentTemplate.getPromptText(ticketOrder) + node.getOptions();
@@ -55,7 +54,6 @@ app.post('*', (req, res) => {
 
 app.put('*', (req, res) => {
   const { userInput, msisdn } = req.body;
-  console.log("PUT MSIDN: ", stateKeeper.ticketOrder.msisdn);
   const { node, ticketOrder } = stateKeeper;
   if (!ticketOrder.msisdn) ticketOrder.msisdn = msisdn || '';
   const selectedOption = node.processUserInput(userInput - 1);
@@ -74,11 +72,8 @@ app.put('*', (req, res) => {
       apiKey: '70026f9d',
       apiSecret: 'HDFl1QxjxGSDLrLK'
     });
- //   const cellphoneNumber = msisdn.replace(msisdn.charAt(0), '27');
     const from = '27423148669317';
-    console.log("Mmber: ", stateKeeper.ticketOrder.msisdn)
-    const to = stateKeeper.ticketOrder.msisdn;
-    console.log("Number: ", to);
+    const to = ticketOrder.msisdn;
     const { match, stand, bank, cost } = ticketOrder;
     const text =
       `Thanks for purchasing the ${match.name} game ticket. You will be watching from the ${
@@ -96,7 +91,6 @@ app.put('*', (req, res) => {
       'Reference: 3hfuw68Rgt' +
       '\n\n' +
       'Enjoy the game :)';
-    console.log('Text:\n', text);
     nexmo.message.sendSms(from, to, text);
     resetTicketOrder(stateKeeper);
   }
