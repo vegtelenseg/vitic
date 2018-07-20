@@ -27,7 +27,7 @@ const stateKeeper = {
   node: null,
   ticketOrder: Store.ticketOrder
 };
-const resetTicketOrder = currentStateKeeper => {
+const resetTicketOrder = () => {
   stateKeeper.ticketOrder = {
     match: {},
     stand: {},
@@ -66,8 +66,10 @@ app.put('*', (req, res) => {
     // Send the sms here and then reset the ticket Order Object.
     const immutableTicketOrder = Object.freeze(ticketOrder);
     const text = buildTextMessage(immutableTicketOrder);
-    sendSMS(ticketOrder.msisdn, text);
-    resetTicketOrder(stateKeeper);
+    const isMessageSentSuccessfully = sendSMS(ticketOrder.msisdn, text);
+    if (isMessageSentSuccessfully) {
+      resetTicketOrder(stateKeeper);
+    }
   }
   const prompt = `${nextNodeInstance.currentTemplate.getPromptText(
     ticketOrder
