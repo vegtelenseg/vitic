@@ -104,16 +104,16 @@ module.exports = {
   standOptions() {
     return [
       {
-        option: new StandOption('Grand Stand', this.orderSelectionNode(), 100)
+        option: new StandOption('Grand Stand (R100)', this.orderSelectionNode(), 100)
       },
       {
-        option: new StandOption('East Stand', this.orderSelectionNode(), 80)
+        option: new StandOption('East Stand (R80)', this.orderSelectionNode(), 80)
       },
       {
-        option: new StandOption('Party Stand', this.orderSelectionNode(), 150)
+        option: new StandOption('Party Stand (R150)', this.orderSelectionNode(), 150)
       },
       {
-        option: new StandOption('Family Stand', this.orderSelectionNode(), 50)
+        option: new StandOption('Family Stand (R50)', this.orderSelectionNode(), 50)
       },
       {
         option: new Option('Back', this.matchSelectionNode.bind(this))
