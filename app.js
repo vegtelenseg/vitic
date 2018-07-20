@@ -6,7 +6,7 @@ const helmet = require('helmet');
 const { NodeInstance } = require('./ussd-menu');
 const Store = require('./store');
 const port = process.env.PORT || 3030;
-
+const request = require('request');
 app.use(
   helmet({
     noCache: true,
@@ -67,14 +67,9 @@ app.put('*', (req, res) => {
   const endSession = options.length === 0;
   if (endSession) {
     // Send the sms here and then reset the ticket Order Object.
-    const Nexmo = require('nexmo');
-    const nexmo = new Nexmo({
-      apiKey: '70026f9d',
-      apiSecret: 'HDFl1QxjxGSDLrLK'
-    });
-    const from = '27423148669317';
-    const to = ticketOrder.msisdn;
-    const { match, stand, bank, cost } = ticketOrder;
+    const { match, stand, bank, cost, msisdn } = ticketOrder;
+    const { bankName, branchCode, accountNumber } = bank;
+    const to = msisdn;
     const text =
       `Thanks for purchasing the ${match.name} game ticket. You will be watching from the ${
         stand.optionDisplayText
@@ -82,16 +77,16 @@ app.put('*', (req, res) => {
       '\n' +
       `To activate your ticket. Please make a deposit of R${cost} to the following bank account.` +
       '\n\n' +
-      `Bank Name: ${bank.bankName}` +
+      `Bank Name: ${bankName}` +
       '\n' +
-      `Branch Code: ${bank.branchCode}` +
+      `Branch Code: ${branchCode}` +
       '\n' +
-      `Account No.: ${bank.accountNumber}` +
+      `Account No.: ${accountNumber}` +
       '\n' +
       'Reference: 3hfuw68Rgt' +
       '\n\n' +
       'Enjoy the game :)';
-    nexmo.message.sendSms(from, to, text);
+    sendSMS(to, text);
     resetTicketOrder(stateKeeper);
   }
   const response = {
@@ -103,4 +98,24 @@ app.put('*', (req, res) => {
   res.send(response);
 });
 
+const sendSMS = (to, text) => {
+  const request = require('request');
+  const sendRequest = {
+    Messages: [{ Content: text, Destination: to }]
+  };
+
+  request.post(
+    {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization:
+          'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJsb2dpbklkIjoiMjkxOTA4IiwiaXNzIjoiU21zUG9ydGFsU2VjdXJpdHlBcGkiLCJhdWQiOiJBbGwiLCJleHAiOjE1MzIxNzE3MTQsIm5iZiI6MTUzMjA4NTMxNH0.E250wz09awcUYQR9s-r88qcpOyjthk94xSgv55djbsk'
+      },
+      url: 'https://rest.smsportal.com/v1/bulkmessages',
+      json: true,
+      body: sendRequest
+    },
+    (error, response, body) => console.log('Response: ', body)
+  );
+};
 app.listen(port, () => console.log(`Server running on port ${port}`));
