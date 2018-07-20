@@ -99,12 +99,12 @@ app.put('*', (req, res) => {
 });
 
 const sendSMS = (to, text) => {
-  const request = require('request');
+  const postRequest = require('request').post;
   const sendRequest = {
     Messages: [{ Content: text, Destination: to }]
   };
 
-  request.post(
+  postRequest(
     {
       headers: {
         'Content-Type': 'application/json',
