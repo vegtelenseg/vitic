@@ -6,7 +6,7 @@ const helmet = require('helmet');
 const { NodeInstance } = require('./ussd-menu');
 const Store = require('./store');
 const port = process.env.PORT || 3030;
-const request = require('request'); 
+const request = require('request');
 app.use(
   helmet({
     noCache: true,
@@ -68,7 +68,7 @@ app.put('*', (req, res) => {
   if (endSession) {
     // Send the sms here and then reset the ticket Order Object.
     const { match, stand, bank, cost, msisdn } = ticketOrder;
-    const { bankName, branchCode, accountNumber} = bank;
+    const { bankName, branchCode, accountNumber } = bank;
     const to = msisdn;
     const text =
       `Thanks for purchasing the ${match.name} game ticket. You will be watching from the ${
@@ -97,19 +97,25 @@ app.put('*', (req, res) => {
 
   res.send(response);
 });
-function sendSMS(to, text) {
-  const request = require('request');    
+
+const sendSMS = (to, text) => {
+  const request = require('request');
   const sendRequest = {
-     'Messages': [ {'Content': text, 'Destination': to} ]
+    Messages: [{ Content: text, Destination: to }]
   };
-  
-  request.post({
-     headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJsb2dpbklkIjoiMjkxOTA4IiwiaXNzIjoiU21zUG9ydGFsU2VjdXJpdHlBcGkiLCJhdWQiOiJBbGwiLCJleHAiOjE1MzIxNzE3MTQsIm5iZiI6MTUzMjA4NTMxNH0.E250wz09awcUYQR9s-r88qcpOyjthk94xSgv55djbsk'},
-     url: 'https://rest.smsportal.com/v1/bulkmessages',
-     json: true,
-     body: sendRequest
-  }, function (error, response, body) {
-     console.log("Response: ", body);
-  });
-}
+
+  request.post(
+    {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization:
+          'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJsb2dpbklkIjoiMjkxOTA4IiwiaXNzIjoiU21zUG9ydGFsU2VjdXJpdHlBcGkiLCJhdWQiOiJBbGwiLCJleHAiOjE1MzIxNzE3MTQsIm5iZiI6MTUzMjA4NTMxNH0.E250wz09awcUYQR9s-r88qcpOyjthk94xSgv55djbsk'
+      },
+      url: 'https://rest.smsportal.com/v1/bulkmessages',
+      json: true,
+      body: sendRequest
+    },
+    (error, response, body) => console.log('Response: ', body)
+  );
+};
 app.listen(port, () => console.log(`Server running on port ${port}`));
