@@ -27,7 +27,7 @@ const stateKeeper = {
   node: null,
   ticketOrder: Store.ticketOrder
 };
-const resetTicketOrder = currentStateKeeper => {
+const resetTicketOrder = () => {
   stateKeeper.ticketOrder = {
     match: {},
     stand: {},
@@ -41,7 +41,7 @@ const resetTicketOrder = currentStateKeeper => {
 
 app.post('*', (req, res) => {
   stateKeeper.node = new NodeInstance(Store.matchSelectionNode(), null);
-  stateKeeper.ticketOrder.msisdn = req.body.msisdn;
+  stateKeeper.ticketOrder.msisdn = req.body.msisdn || null;
   const { node, ticketOrder } = stateKeeper;
   const { currentTemplate } = node;
   const prompt = currentTemplate.getPromptText(ticketOrder) + node.getOptions();
@@ -53,55 +53,43 @@ app.post('*', (req, res) => {
 });
 
 app.put('*', (req, res) => {
-  const { userInput, msisdn } = req.body;
+  const { userInput } = req.body;
   const { node, ticketOrder } = stateKeeper;
-  if (!ticketOrder.msisdn) ticketOrder.msisdn = msisdn || '';
   const selectedOption = node.processUserInput(userInput - 1);
   node.updateState(stateKeeper);
   let { nextNodeTemplate } = selectedOption.option;
   nextNodeTemplate = typeof nextNodeTemplate === 'function' ? nextNodeTemplate() : nextNodeTemplate;
-  const nextInstance = new NodeInstance(nextNodeTemplate, node);
-  const { currentTemplate, getOptions } = nextInstance;
-  const prompt = `${currentTemplate.getPromptText(ticketOrder)} ${getOptions()}`;
-  const { options } = currentTemplate;
-  const endSession = options.length === 0;
+
+  const nextNodeInstance = new NodeInstance(nextNodeTemplate, node);
+  const endSession = nextNodeInstance.currentTemplate.options.length === 0;
   if (endSession) {
     // Send the sms here and then reset the ticket Order Object.
-    const { match, stand, bank, cost, msisdn } = ticketOrder;
-    const { bankName, branchCode, accountNumber } = bank;
-    const to = msisdn;
-    const text =
-      `Thanks for purchasing the ${match.name} game ticket. You will be watching from the ${
-        stand.optionDisplayText
-      }.` +
-      '\n' +
-      `To activate your ticket. Please make a deposit of R${cost} to the following bank account.` +
-      '\n\n' +
-      `Bank Name: ${bankName}` +
-      '\n' +
-      `Branch Code: ${branchCode}` +
-      '\n' +
-      `Account No.: ${accountNumber}` +
-      '\n' +
-      'Reference: 3hfuw68Rgt' +
-      '\n\n' +
-      'Enjoy the game :)';
-    sendSMS(to, text);
-    resetTicketOrder(stateKeeper);
+    const immutableTicketOrder = Object.freeze(ticketOrder);
+    const text = buildTextMessage(immutableTicketOrder);
+    const isMessageSentSuccessfully = sendSMS(ticketOrder.msisdn, text);
+    if (isMessageSentSuccessfully) {
+      resetTicketOrder(stateKeeper);
+    }
   }
+  const prompt = `${nextNodeInstance.currentTemplate.getPromptText(
+    ticketOrder
+  )} ${nextNodeInstance.getOptions()}`;
   const response = {
     prompt,
     end: endSession
   };
-  stateKeeper.node = nextInstance;
+  stateKeeper.node = nextNodeInstance;
 
   res.send(response);
 });
 
-const sendSMS = (to, text) => {
+const sendSMS = (destination, content) => {
+  if (!destination || !content) {
+    return null;
+  }
   const postRequest = require('request').post;
   const sendRequest = {
-    Messages: [{ Content: text, Destination: to }]
+    messages: [{ content, destination }]
   };
 
   postRequest(
@@ -118,4 +106,25 @@ const sendSMS = (to, text) => {
     (error, response, body) => console.log('Response: ', body)
   );
 };
+
+const buildTextMessage = ticketOrderDetails => {
+  const { match, stand, cost } = ticketOrderDetails;
+  const { bankName, branchCode, accountNumber } = ticketOrderDetails.bank;
+  return `Thanks for purchasing the ${match.name} game ticket. You will be watching from the ${
+    stand.optionDisplayText
+  }.` +
+  '\n' +
+  `To activate your ticket. Please make a deposit of R${cost} to the following bank account.` +
+  '\n\n' +
+  `Bank Name: ${bankName}` +
+  '\n' +
+  `Branch Code: ${branchCode}` +
+  '\n' +
+  `Account No.: ${accountNumber}` +
+  '\n' +
+  'Reference: 3hfuw68Rgt' +
+  '\n\n' +
+  'Enjoy the game :)';
+}
+
 app.listen(port, () => console.log(`Server running on port ${port}`));
