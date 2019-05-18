@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "prettier": "prettier --write --print-width=100 --tab-width=2 --single-quote=true \"**/*.js\"",
-    "start": "nodemon app.js"
+    "start": "nodemon app.js",
+    "snyk-protect": "snyk protect",
+    "prepare": "npm run snyk-protect"
   },
   "keywords": [],
   "author": "",
@@ -20,10 +22,12 @@
     "nexmo": "^2.3.2",
     "prettier": "^1.12.1",
     "request": "^2.87.0",
-    "ussd-menu-builder": "^1.0.0"
+    "ussd-menu-builder": "^1.0.0",
+    "snyk": "^1.161.1"
   },
   "devDependencies": {
     "babel-plugin-transform-es2015-arrow-functions": "^6.22.0",
     "jsx-transform": "^2.4.0"
-  }
+  },
+  "snyk": true
 }
